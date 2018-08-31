@@ -464,10 +464,19 @@ namespace Itinero
             { // not possible to calculate a relative direction for the first or last segment.
                 throw new ArgumentOutOfRangeException("i", "It's not possible to calculate a relative direction for the first or last segment.");
             }
-            return DirectionCalculator.Calculate(
-                new Coordinate(route.Shape[i - 1].Latitude, route.Shape[i - 1].Longitude),
+            int h = i - 1; // work backward from i to make sure we don't use an identical coordinate
+            int j = i + 1; // work forward from i to make sure we don't use an identical coordinate
+            while (h >= 0 && route.Shape[h].Latitude == route.Shape[i].Latitude && route.Shape[h].Longitude == route.Shape[i].Longitude) h--;
+            while (j <= route.Shape.Length && route.Shape[j].Latitude == route.Shape[i].Latitude && route.Shape[j].Longitude == route.Shape[i].Longitude) j++;
+
+            return DirectionCalculator.Calculate(route, i,
+                new Coordinate(route.Shape[h].Latitude, route.Shape[h].Longitude),
                 new Coordinate(route.Shape[i].Latitude, route.Shape[i].Longitude),
-                new Coordinate(route.Shape[i + 1].Latitude, route.Shape[i + 1].Longitude));
+                new Coordinate(route.Shape[j].Latitude, route.Shape[j].Longitude));
+            //return DirectionCalculator.Calculate(route, i, 
+            //    new Coordinate(route.Shape[i - 1].Latitude, route.Shape[i - 1].Longitude),
+            //    new Coordinate(route.Shape[i].Latitude, route.Shape[i].Longitude),
+            //    new Coordinate(route.Shape[i + 1].Latitude, route.Shape[i + 1].Longitude));
         }
 
         /// <summary>

@@ -244,9 +244,19 @@ instruction_generators = {
 -- gets the first instruction
 function get_start (route_position, language_reference, instruction)
 	if route_position.is_first() then
+		local name = nil
+		local next = route_position.next()
+		if next then
+			name = next.attributes.name
+		end
 		local direction = route_position.direction()
-		instruction.text = itinero.format(language_reference.get("Start {0}."), language_reference.get(direction));
-		instruction.shape = route_position.shape
+		if name then
+			instruction.text = itinero.format(language_reference.get("Start {0} on {1}."), language_reference.get(direction), name);
+			instruction.shape = route_position.shape
+		else
+			instruction.text = itinero.format(language_reference.get("Start {0}."), language_reference.get(direction));
+			instruction.shape = route_position.shape
+		end
 		return 1
 	end
 	return 0
@@ -309,6 +319,20 @@ end
 -- gets a turn
 function get_turn (route_position, language_reference, instruction) 
 	local relative_direction = route_position.relative_direction().direction
+	local driving_action
+	local direction_string
+	if relative_direction == "slightlyright" then
+		driving_action = "Continue"
+		direction_string = "slightly right"
+	else
+		if relative_direction == "slightlyleft" then
+			driving_action = "Continue"
+			direction_string = "slightly left"
+		else
+			driving_action = "Turn"
+			direction_string = language_reference.get(relative_direction)
+		end
+	end
 
 	local turn_relevant = false
 	local branches = route_position.branches
@@ -329,15 +353,26 @@ function get_turn (route_position, language_reference, instruction)
 		local name = nil
 		if next then
 			name = next.attributes.name
+			if name == "" then
+				name = "Unnamed"
+			end
 		end
 		if name then
-			instruction.text = itinero.format(language_reference.get("Go {0} on {1}."), 
-				language_reference.get(relative_direction), name)
-			instruction.shape = route_position.shape
+			if relative_direction == "straighton" then
+				instruction.text = itinero.format(language_reference.get("Continue on {0}."), name)
+				instruction.shape = route_position.shape
+			else
+				instruction.text = itinero.format(language_reference.get("{0} {1} onto {2}."), driving_action, direction_string, name)
+				instruction.shape = route_position.shape
+			end
 		else
-			instruction.text = itinero.format(language_reference.get("Go {0}."), 
-				language_reference.get(relative_direction))
-			instruction.shape = route_position.shape
+			if relative_direction == "straighton" then
+				instruction.text = itinero.format(language_reference.get("Continue."))
+				instruction.shape = route_position.shape
+			else
+				instruction.text = itinero.format(language_reference.get("{0} {1}."), driving_action, direction_string)
+				instruction.shape = route_position.shape
+			end
 		end
 
 		return 1

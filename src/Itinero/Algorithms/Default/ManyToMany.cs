@@ -19,6 +19,7 @@
 using Itinero.Algorithms.Weights;
 using Itinero.Profiles;
 using System;
+using System.Collections.Generic;
 
 namespace Itinero.Algorithms.Default
 {
@@ -33,18 +34,20 @@ namespace Itinero.Algorithms.Default
         private readonly RouterPoint[] _sources;
         private readonly RouterPoint[] _targets;
         private readonly T _maxSearch;
+        private readonly List<uint> _closures;
         
         /// <summary>
         /// Creates a new algorithm.
         /// </summary>
         public ManyToMany(RouterDb routerDb, WeightHandler<T> weightHandler,
-            RouterPoint[] sources, RouterPoint[] targets, T maxSearch)
+            RouterPoint[] sources, RouterPoint[] targets, T maxSearch, List<uint> closures)
         {
             _routerDb = routerDb;
             _weightHandler = weightHandler;
             _sources = sources;
             _targets = targets;
             _maxSearch = maxSearch;
+            _closures = closures;
         }
 
         private OneToMany<T>[] _sourceSearches;
@@ -58,7 +61,7 @@ namespace Itinero.Algorithms.Default
             _sourceSearches = new OneToMany<T>[_sources.Length];
             for (var i = 0; i < _sources.Length; i++)
             {
-                _sourceSearches[i] = new OneToMany<T>(_routerDb, _weightHandler, _sources[i], _targets, _maxSearch);
+                _sourceSearches[i] = new OneToMany<T>(_routerDb, _weightHandler, _sources[i], _targets, _maxSearch, _closures);
                 _sourceSearches[i].Run();
             }
 
@@ -134,7 +137,7 @@ namespace Itinero.Algorithms.Default
         public ManyToMany(RouterBase router, Profile profile,
             RouterPoint[] sources, RouterPoint[] targets,
             float maxSearch)
-            : base(router.Db, profile.DefaultWeightHandler(router), sources, targets, maxSearch)
+            : base(router.Db, profile.DefaultWeightHandler(router), sources, targets, maxSearch, router.Closures)
         {
 
         }
@@ -144,8 +147,8 @@ namespace Itinero.Algorithms.Default
         /// </summary>
         public ManyToMany(RouterDb routerDb, Func<ushort, Factor> getFactor,
             RouterPoint[] sources, RouterPoint[] targets,
-            float maxSearch)
-            : base(routerDb, new DefaultWeightHandler(getFactor), sources, targets, maxSearch)
+            float maxSearch, List<uint> closures)
+            : base(routerDb, new DefaultWeightHandler(getFactor), sources, targets, maxSearch, closures)
         {
 
         }
@@ -155,8 +158,8 @@ namespace Itinero.Algorithms.Default
         /// </summary>
         public ManyToMany(RouterDb routerDb, DefaultWeightHandler weightHandler,
             RouterPoint[] sources, RouterPoint[] targets,
-            float maxSearch)
-            : base(routerDb, weightHandler, sources, targets, maxSearch)
+            float maxSearch, List<uint> closures)
+            : base(routerDb, weightHandler, sources, targets, maxSearch, closures)
         {
 
         }

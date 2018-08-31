@@ -34,18 +34,20 @@ namespace Itinero.Algorithms.Default
         private readonly IList<RouterPoint> _targets;
         private readonly WeightHandler<T> _weightHandler;
         private readonly T _maxSearch;
+        private readonly List<uint> _closures;
         
         /// <summary>
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, WeightHandler<T> weightHandler,
-            RouterPoint source, IList<RouterPoint> targets, T maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, T maxSearch, List<uint> closures)
         {
             _routerDb = routerDb;
             _weightHandler = weightHandler;
             _source = source;
             _targets = targets;
             _maxSearch = maxSearch;
+            _closures = closures;
         }
 
         private EdgePath<T>[] _best;
@@ -103,7 +105,7 @@ namespace Itinero.Algorithms.Default
 
             // run the search.
             var dykstra = new Dykstra<T>(_routerDb.Network.GeometricGraph.Graph, null, _weightHandler,
-                sourcePaths, max, false);
+                sourcePaths, max, _closures, false);
             dykstra.WasFound += (vertex, weight) =>
             {
                 LinkedTarget target;
@@ -215,8 +217,8 @@ namespace Itinero.Algorithms.Default
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterBase router, Profile profile,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(router.Db, profile.DefaultWeightHandler(router), source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(router.Db, profile.DefaultWeightHandler(router), source, targets, maxSearch, closures)
         {
 
         }
@@ -225,8 +227,8 @@ namespace Itinero.Algorithms.Default
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, Func<ushort, Factor> getFactor,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(routerDb, new DefaultWeightHandler(getFactor), source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(routerDb, new DefaultWeightHandler(getFactor), source, targets, maxSearch, closures)
         {
 
         }
@@ -235,8 +237,8 @@ namespace Itinero.Algorithms.Default
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, DefaultWeightHandler weightHandler,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(routerDb, weightHandler, source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(routerDb, weightHandler, source, targets, maxSearch, closures)
         {
 
         }

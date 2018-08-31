@@ -39,6 +39,14 @@ namespace Itinero
         }
 
         /// <summary>
+        /// Gets the Road Closure list.
+        /// </summary>
+        public abstract List<uint> Closures
+        {
+            get;
+        }
+
+        /// <summary>
         /// Gets or sets the profile factor and speed cache.
         /// </summary>
         public ProfileFactorAndSpeedCache ProfileFactorAndSpeedCache { get; set; }
@@ -47,6 +55,23 @@ namespace Itinero
         /// Flag to check all resolved points if stopping at the resolved location is possible.
         /// </summary>
         public bool VerifyAllStoppable { get; set; }
+
+        /// <summary>
+        /// Find nearest network edge independent of Profile or Closures
+        /// </summary>
+        public abstract Result<uint> NearestEdge(float latitude, float longitude,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter);
+
+        /// <summary>
+        /// Close (or Open) road based on geographic location
+        /// </summary>
+        public abstract Result<RouterPoint> CloseRoad(float latitude, float longitude, bool doClose,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter);
+
+        /// <summary>
+        /// Close (or Open) road based on its internal Edge ID
+        /// </summary>
+        public abstract Result<bool> CloseRoad(uint edgeId, bool doClose);
 
         /// <summary>
         /// Searches for the closest point on the routing network that's routable for the given profiles.

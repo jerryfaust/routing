@@ -23,6 +23,7 @@ using Itinero.Graphs;
 using Itinero.Profiles;
 using System;
 using Itinero.Data.Edges;
+using System.Collections.Generic;
 
 namespace Itinero.Test.Algorithms.Default
 {
@@ -71,9 +72,9 @@ namespace Itinero.Test.Algorithms.Default
 
             // run algorithm.
             var sourceSearch = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) },
-                150 * 1 / speed, false);
+                150 * 1 / speed, new List<uint>(), false);
             var targetSearch = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(2) },
-                150 * 1 / speed, true);
+                150 * 1 / speed, new List<uint>(), true);
             var algorithm = new BidirectionalDykstra(sourceSearch, targetSearch, getFactor);
             algorithm.Run();
 

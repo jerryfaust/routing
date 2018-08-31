@@ -35,12 +35,13 @@ namespace Itinero.Algorithms.Default.EdgeBased
         private readonly WeightHandler<T> _weightHandler;
         private readonly T _maxSearch;
         private readonly Func<uint, IEnumerable<uint[]>> _getRestrictions;
+        private readonly List<uint> _closures;
 
         /// <summary>
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, WeightHandler<T> weightHandler, Func<uint, IEnumerable<uint[]>> getRestrictions,
-            RouterPoint source, IList<RouterPoint> targets, T maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, T maxSearch, List<uint> closures)
         {
             _routerDb = routerDb;
             _weightHandler = weightHandler;
@@ -48,6 +49,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
             _targets = targets;
             _maxSearch = maxSearch;
             _getRestrictions = getRestrictions;
+            _closures = closures;
         }
 
         private EdgePath<T>[] _best;
@@ -105,7 +107,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
 
             // run the search.
             var dykstra = new Dykstra<T>(_routerDb.Network.GeometricGraph.Graph, _weightHandler, _getRestrictions,
-                sourcePaths, max, false);
+                sourcePaths, max, _closures, false);
             dykstra.Visit += (path) =>
             {
                 LinkedTarget target;
@@ -195,8 +197,8 @@ namespace Itinero.Algorithms.Default.EdgeBased
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(Router router, Profile profile, Func<uint, IEnumerable<uint[]>> getRestrictions,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(router.Db, profile.DefaultWeightHandler(router), getRestrictions, source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(router.Db, profile.DefaultWeightHandler(router), getRestrictions, source, targets, maxSearch, closures)
         {
 
         }
@@ -205,8 +207,8 @@ namespace Itinero.Algorithms.Default.EdgeBased
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, Func<ushort, Factor> getFactor, Func<uint, IEnumerable<uint[]>> getRestrictions,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(routerDb, new DefaultWeightHandler(getFactor), getRestrictions, source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(routerDb, new DefaultWeightHandler(getFactor), getRestrictions, source, targets, maxSearch, closures)
         {
 
         }
@@ -215,8 +217,8 @@ namespace Itinero.Algorithms.Default.EdgeBased
         /// Creates a new algorithm.
         /// </summary>
         public OneToMany(RouterDb routerDb, DefaultWeightHandler weightHandler, Func<uint, IEnumerable<uint[]>> getRestrictions,
-            RouterPoint source, IList<RouterPoint> targets, float maxSearch)
-            : base(routerDb, weightHandler, getRestrictions, source, targets, maxSearch)
+            RouterPoint source, IList<RouterPoint> targets, float maxSearch, List<uint> closures)
+            : base(routerDb, weightHandler, getRestrictions, source, targets, maxSearch, closures)
         {
 
         }

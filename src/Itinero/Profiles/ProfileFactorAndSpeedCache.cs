@@ -118,7 +118,7 @@ namespace Itinero.Profiles
         /// <summary>
         /// Returns an isacceptable function using the cached data.
         /// </summary>
-        public Func<GeometricEdge, bool> GetIsAcceptable(bool verifyCanStopOn, params IProfileInstance[] profileInstances)
+        public Func<GeometricEdge, bool> GetIsAcceptable(bool verifyCanStopOn, List<uint> closures, params IProfileInstance[] profileInstances)
         {
             if (!this.ContainsAll(profileInstances)) { throw new ArgumentException("Not all given profiles are supported."); }
 
@@ -130,6 +130,10 @@ namespace Itinero.Profiles
 
             return (edge) =>
             {
+                // first check for closure
+                if (closures.Contains(edge.Id))
+                    return false;
+
                 float distance;
                 ushort edgeProfileId;
                 Data.Edges.EdgeDataSerializer.Deserialize(edge.Data[0],

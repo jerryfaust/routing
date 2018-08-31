@@ -31,18 +31,18 @@ namespace Itinero.Test.Navigation.Directions
         /// <summary>
         /// Tests calculating relative directions.
         /// </summary>
-        [Test]
-        public void RelativeDirectionTest()
-        {
-            var direction = DirectionCalculator.Calculate(new Coordinate(0, 1), 
-                new Coordinate(0, 0), new Coordinate(1, 0));
-            Assert.AreEqual(90, direction.Angle, 0.0001);
-            Assert.AreEqual(RelativeDirectionEnum.Right, direction.Direction);
-            direction = DirectionCalculator.Calculate(new Coordinate(1, 0),
-                 new Coordinate(0, 0), new Coordinate(0, 1));
-            Assert.AreEqual(270, direction.Angle, 0.0001);
-            Assert.AreEqual(RelativeDirectionEnum.Left, direction.Direction);
-        }
+        //[Test]
+        //public void RelativeDirectionTest()
+        //{
+        //    var direction = DirectionCalculator.Calculate(new Coordinate(0, 1), 
+        //        new Coordinate(0, 0), new Coordinate(1, 0));
+        //    Assert.AreEqual(90, direction.Angle, 0.0001);
+        //    Assert.AreEqual(RelativeDirectionEnum.Right, direction.Direction);
+        //    direction = DirectionCalculator.Calculate(new Coordinate(1, 0),
+        //         new Coordinate(0, 0), new Coordinate(0, 1));
+        //    Assert.AreEqual(270, direction.Angle, 0.0001);
+        //    Assert.AreEqual(RelativeDirectionEnum.Left, direction.Direction);
+        //}
 
         /// <summary>
         /// Tests calculate direction.

@@ -67,7 +67,7 @@ namespace Itinero.Test.Algorithms
 
             // run algorithm.
             var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) }, 
-                float.MaxValue, false);
+                float.MaxValue, new List<uint>(), false);
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -119,7 +119,7 @@ namespace Itinero.Test.Algorithms
 
             // run algorithm.
             var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) },
-                (100 / speed) / 2, false);
+                (100 / speed) / 2, new List<uint>(), false);
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -169,7 +169,7 @@ namespace Itinero.Test.Algorithms
 
             // run algorithm.
             var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) },
-                float.MaxValue, false);
+                float.MaxValue, new List<uint>(), false);
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -197,7 +197,7 @@ namespace Itinero.Test.Algorithms
 
             // run algorithm.
             algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) },
-                float.MaxValue, false);
+                float.MaxValue, new List<uint>(), false);
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -267,7 +267,7 @@ namespace Itinero.Test.Algorithms
             var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { 
                 new EdgePath<float>(0, 10 / speed, new EdgePath<float>(uint.MaxValue)),
                 new EdgePath<float>(1, 90 / speed, new EdgePath<float>(uint.MaxValue))},
-                float.MaxValue, false);
+                float.MaxValue, new List<uint>(), false);
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -342,7 +342,7 @@ namespace Itinero.Test.Algorithms
 
             // run algorithm.
             var reportedEdges = new HashSet<long>();
-            var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) }, float.MaxValue, false);
+            var algorithm = new Dykstra(graph, getFactor, null, new EdgePath<float>[] { new EdgePath<float>(0) }, float.MaxValue, new List<uint>(), false);
             algorithm.Visit += (path) =>
             {
                 if (path.From == null)

@@ -20,6 +20,7 @@ using NUnit.Framework;
 using Itinero.Algorithms.Default;
 using Itinero.Test.Profiles;
 using Itinero.Data.Network;
+using System.Collections.Generic;
 
 namespace Itinero.Test.Algorithms.Default
 {
@@ -53,7 +54,7 @@ namespace Itinero.Test.Algorithms.Default
 
             // run algorithm.
             var algorithm = new OneToMany(new Router(routerDb), VehicleMock.Car().Fastest(), 
-                new RouterPoint(0, 0, 0, 0), new RouterPoint[] { new RouterPoint(1, 1, 0, ushort.MaxValue) }, float.MaxValue);
+                new RouterPoint(0, 0, 0, 0), new RouterPoint[] { new RouterPoint(1, 1, 0, ushort.MaxValue) }, float.MaxValue, new List<uint>());
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -96,7 +97,7 @@ namespace Itinero.Test.Algorithms.Default
             // run algorithm.
             var algorithm = new OneToMany(new Router(routerDb), VehicleMock.Car().Fastest(),
                 new RouterPoint(0, 0, 0, ushort.MaxValue / 10), 
-                new RouterPoint[] { new RouterPoint(1, 1, 0, ushort.MaxValue / 10 * 9) }, float.MaxValue);
+                new RouterPoint[] { new RouterPoint(1, 1, 0, ushort.MaxValue / 10 * 9) }, float.MaxValue, new List<uint>());
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -168,7 +169,7 @@ namespace Itinero.Test.Algorithms.Default
                 new RouterPoint[] { 
                     routerDb.Network.CreateRouterPointForVertex(1),
                     routerDb.Network.CreateRouterPointForVertex(2)
-                }, float.MaxValue);
+                }, float.MaxValue, new List<uint>());
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);
@@ -207,7 +208,7 @@ namespace Itinero.Test.Algorithms.Default
                 new RouterPoint[] { 
                     routerDb.Network.CreateRouterPointForVertex(0),
                     routerDb.Network.CreateRouterPointForVertex(2)
-                }, float.MaxValue);
+                }, float.MaxValue, new List<uint>());
             algorithm.Run();
 
             Assert.IsTrue(algorithm.HasRun);

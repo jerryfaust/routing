@@ -56,6 +56,14 @@ namespace Itinero.Test
             }
         }
 
+        public override List<uint> Closures
+        {
+            get
+            {
+                return new List<uint>();
+            }
+        }
+
         public override Result<EdgePath<T>[][]> TryCalculateRaw<T>(Itinero.Profiles.IProfileInstance profile, WeightHandler<T> weightHandler, RouterPoint[] sources, RouterPoint[] targets, 
             RoutingSettings<T> settings)
         {
@@ -110,6 +118,23 @@ namespace Itinero.Test
         public override Result<bool> TryCheckConnectivity(IProfileInstance profile, RouterPoint point, float radiusInMeters, bool? forward = null)
         {
             throw new System.NotImplementedException();
+        }
+
+        public override Result<uint> NearestEdge(float latitude, float longitude,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            return new Result<uint>(0);
+        }
+
+        public override Result<RouterPoint> CloseRoad(float latitude, float longitude, bool doClose,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            return new Result<RouterPoint>(new RouterPoint(latitude, longitude, 0, 0));
+        }
+
+        public override Result<bool> CloseRoad(uint edgeId, bool doClose)
+        {
+            return new Result<bool>(true);
         }
 
         public override Result<RouterPoint> TryResolve(IProfileInstance[] profiles,

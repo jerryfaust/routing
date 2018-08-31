@@ -71,13 +71,13 @@ namespace Itinero.Algorithms.Networks.Analytics.Trees
             {
                 treeBuilder = new TreeBuilder(router.Db.Network.GeometricGraph,
                     new Algorithms.Default.Dykstra(router.Db.Network.GeometricGraph.Graph,
-                        weightHandler, null, origin.ToEdgePaths<float>(router.Db, weightHandler, true), max, false));
+                        weightHandler, null, origin.ToEdgePaths<float>(router.Db, weightHandler, true), max, router.Closures, false));
             }
             else
             {
                 treeBuilder = new TreeBuilder(router.Db.Network.GeometricGraph,
                     new Algorithms.Default.EdgeBased.Dykstra(router.Db.Network.GeometricGraph.Graph,
-                        weightHandler, router.Db.GetGetRestrictions(profile, true), origin.ToEdgePaths<float>(router.Db, weightHandler, true), max, false));
+                        weightHandler, router.Db.GetGetRestrictions(profile, true), origin.ToEdgePaths<float>(router.Db, weightHandler, true), max, router.Closures, false));
             }
             treeBuilder.Run();
 

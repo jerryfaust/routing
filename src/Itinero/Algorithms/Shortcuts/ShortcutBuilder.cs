@@ -89,7 +89,7 @@ namespace Itinero.Algorithms.Shortcuts
                 Distance = float.MaxValue,
                 Time = _maxShortcutDuration,
                 Value = _maxShortcutDuration
-            });
+            }, new List<uint>());
             algorithm.Run();
             if (!algorithm.HasSucceeded)
             {

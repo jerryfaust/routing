@@ -56,7 +56,7 @@ namespace Itinero.Algorithms.Networks.Analytics.Isochrones
             // calculate isochrones.
             var isochrone = new TileBasedIsochroneBuilder(router.Db.Network.GeometricGraph,
                 new Algorithms.Default.Dykstra(router.Db.Network.GeometricGraph.Graph,
-                    weightHandler, null, origin.ToEdgePaths<float>(router.Db, weightHandler, true), limits.Max() * 1.1f, false), 
+                    weightHandler, null, origin.ToEdgePaths<float>(router.Db, weightHandler, true), limits.Max() * 1.1f, router.Closures, false), 
                 limits, zoom);
             isochrone.Run();
 

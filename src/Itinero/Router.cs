@@ -38,6 +38,9 @@ namespace Itinero
     {
         private readonly RouterDb _db;
 
+        // closed road array (of edge IDs)
+        private List<uint> _closedRoads;
+
         /// <summary>
         /// Creates a new router.
         /// </summary>
@@ -47,6 +50,8 @@ namespace Itinero
 
             this.ProfileFactorAndSpeedCache = new ProfileFactorAndSpeedCache(db);
             this.VerifyAllStoppable = false;
+
+            this._closedRoads = new List<uint>();
         }
 
         /// <summary>
@@ -67,6 +72,136 @@ namespace Itinero
             get
             {
                 return _db;
+            }
+        }
+
+        /// <summary>
+        /// Gets the Road Closure list.
+        /// </summary>
+        public override sealed List<uint> Closures
+        {
+            get
+            {
+                return _closedRoads;
+            }
+        }
+
+        /// <summary>
+        /// Find nearest network edge independent of Profile or Closures
+        /// </summary>
+        public sealed override Result<uint> NearestEdge(float latitude, float longitude,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            try
+            {
+                // get is acceptable function, indicating everything is acceptable
+                var isAcceptable = this.GetIsAcceptable(null);
+
+                IResolver resolver = new ResolveAlgorithm(_db.Network.GeometricGraph, latitude, longitude,
+                            _db.Network.MaxEdgeDistance / 2, searchDistanceInMeter, isAcceptable, null);
+
+                resolver.Run();
+                if (!resolver.HasSucceeded)
+                { // something went wrong.
+                    return new Result<uint>(resolver.ErrorMessage, (message) =>
+                    {
+                        return new Exceptions.ResolveFailedException(message);
+                    });
+                }
+
+                // get the Edge from the result
+                uint edgeId = resolver.Result.EdgeId;
+
+                return new Result<uint>(edgeId);
+            }
+            catch (Exception ex)
+            {
+                return new Result<uint>(ex.Message, (m) => ex);
+            }
+        }
+
+        /// <summary>
+        /// Close (or Open) road based on geographic location
+        /// </summary>
+        public sealed override Result<RouterPoint> CloseRoad(float latitude, float longitude, bool doClose, 
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            try
+            {
+                // get is acceptable function, indicating everything is acceptable
+                var isAcceptable = this.GetIsAcceptable(null);
+
+                IResolver resolver = new ResolveAlgorithm(_db.Network.GeometricGraph, latitude, longitude,
+                            _db.Network.MaxEdgeDistance / 2, searchDistanceInMeter, isAcceptable, null);
+
+                resolver.Run();
+                if (!resolver.HasSucceeded)
+                { // something went wrong.
+                    return new Result<RouterPoint>(resolver.ErrorMessage, (message) =>
+                    {
+                        return new Exceptions.ResolveFailedException(message);
+                    });
+                }
+
+                // get the Edge from the result
+                uint edgeId = resolver.Result.EdgeId;
+
+                if (doClose)
+                {
+                    if (!_closedRoads.Contains(edgeId))
+                        _closedRoads.Add(edgeId);
+                }
+                else
+                {
+                    if (_closedRoads.Contains(edgeId))
+                        _closedRoads.Remove(edgeId);
+                }
+
+                //RoutingEdge edge = _db.Network.GetEdge(edgeId);
+                //// Open is profile 3, Closed is profile 2?
+                //Data.Network.Edges.EdgeData edgeData = edge.Data;
+                //edgeData.Profile = (ushort)(doClose ? 2 : 3);
+                ////edge.Data = edgeData;
+                //_db.Network.UpdateEdgeData(edgeId, edgeData);
+
+                return new Result<RouterPoint>(resolver.Result);
+            }
+            catch (Exception ex)
+            {
+                return new Result<RouterPoint>(ex.Message, (m) => ex);
+            }
+        }
+
+        /// <summary>
+        /// Close (or Open) road based on its internal Edge ID
+        /// </summary>
+        public sealed override Result<bool> CloseRoad(uint edgeId, bool doClose)
+        {
+            try
+            {
+                bool result = false;
+
+                if (doClose)
+                {
+                    if (!_closedRoads.Contains(edgeId))
+                    {
+                        _closedRoads.Add(edgeId);
+                        result = true;
+                    }
+                }
+                else
+                {
+                    if (_closedRoads.Contains(edgeId))
+                    {
+                        result = _closedRoads.Remove(edgeId);
+                    }
+                }
+
+                return new Result<bool>(result);
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool>(ex.Message, (m) => ex);
             }
         }
 
@@ -172,7 +307,7 @@ namespace Itinero
                 if (checkForward)
                 { // build and run forward dykstra search.
                     var dykstra = new Algorithms.Default.EdgeBased.Dykstra(_db.Network.GeometricGraph.Graph, weightHandler, 
-                        _db.GetGetRestrictions(profileInstance.Profile, true), point.ToEdgePaths(_db, weightHandler, true), radiusInMeter, false);
+                        _db.GetGetRestrictions(profileInstance.Profile, true), point.ToEdgePaths(_db, weightHandler, true), radiusInMeter, _closedRoads, false);
                     dykstra.Run();
                     if (!dykstra.HasSucceeded ||
                         !dykstra.MaxReached)
@@ -185,7 +320,7 @@ namespace Itinero
                 if (checkBackward)
                 { // build and run backward dykstra search.
                     var dykstra = new Algorithms.Default.EdgeBased.Dykstra(_db.Network.GeometricGraph.Graph, weightHandler, 
-                        _db.GetGetRestrictions(profileInstance.Profile, false), point.ToEdgePaths(_db, weightHandler, false), radiusInMeter, true);
+                        _db.GetGetRestrictions(profileInstance.Profile, false), point.ToEdgePaths(_db, weightHandler, false), radiusInMeter, _closedRoads, true);
                     dykstra.Run();
                     if (!dykstra.HasSucceeded ||
                         !dykstra.MaxReached)
@@ -365,9 +500,9 @@ namespace Itinero
                     if (_db.HasComplexRestrictions(profileInstance.Profile))
                     {
                         var sourceSearch = new Algorithms.Default.EdgeBased.Dykstra<T>(_db.Network.GeometricGraph.Graph, weightHandler,
-                            _db.GetGetRestrictions(profileInstance.Profile, true), source.ToEdgePaths(_db, weightHandler, true), maxSearch, false);
+                            _db.GetGetRestrictions(profileInstance.Profile, true), source.ToEdgePaths(_db, weightHandler, true), maxSearch, _closedRoads, false);
                         var targetSearch = new Algorithms.Default.EdgeBased.Dykstra<T>(_db.Network.GeometricGraph.Graph, weightHandler,
-                            _db.GetGetRestrictions(profileInstance.Profile, false), target.ToEdgePaths(_db, weightHandler, false), maxSearch, true);
+                            _db.GetGetRestrictions(profileInstance.Profile, false), target.ToEdgePaths(_db, weightHandler, false), maxSearch, _closedRoads, true);
 
                         var bidirectionalSearch = new Algorithms.Default.EdgeBased.BidirectionalDykstra<T>(sourceSearch, targetSearch, weightHandler);
                         bidirectionalSearch.Run();
@@ -389,9 +524,9 @@ namespace Itinero
                     else
                     {
                         var sourceSearch = new Dykstra<T>(_db.Network.GeometricGraph.Graph, _db.GetGetSimpleRestrictions(profileInstance.Profile), weightHandler,
-                            source.ToEdgePaths(_db, weightHandler, true), maxSearch, false);
+                            source.ToEdgePaths(_db, weightHandler, true), maxSearch, _closedRoads, false);
                         var targetSearch = new Dykstra<T>(_db.Network.GeometricGraph.Graph, _db.GetGetSimpleRestrictions(profileInstance.Profile) , weightHandler,
-                            target.ToEdgePaths(_db, weightHandler, false), maxSearch, true);
+                            target.ToEdgePaths(_db, weightHandler, false), maxSearch, _closedRoads, true);
 
                         var bidirectionalSearch = new BidirectionalDykstra<T>(sourceSearch, targetSearch, weightHandler);
                         bidirectionalSearch.Run();
@@ -575,9 +710,9 @@ namespace Itinero
                 else
                 { // use the regular graph.
                     var sourceSearch = new Algorithms.Default.EdgeBased.Dykstra<T>(_db.Network.GeometricGraph.Graph, weightHandler,
-                        _db.GetGetRestrictions(profileInstance.Profile, true), new EdgePath<T>[] { sourcePath }, maxSearch, false);
+                        _db.GetGetRestrictions(profileInstance.Profile, true), new EdgePath<T>[] { sourcePath }, maxSearch, _closedRoads, false);
                     var targetSearch = new Algorithms.Default.EdgeBased.Dykstra<T>(_db.Network.GeometricGraph.Graph, weightHandler,
-                        _db.GetGetRestrictions(profileInstance.Profile, false), new EdgePath<T>[] { targetPath }, maxSearch, true);
+                        _db.GetGetRestrictions(profileInstance.Profile, false), new EdgePath<T>[] { targetPath }, maxSearch, _closedRoads, true);
 
                     var bidirectionalSearch = new Algorithms.Default.EdgeBased.BidirectionalDykstra<T>(sourceSearch, targetSearch, weightHandler);
                     bidirectionalSearch.Run();
@@ -735,7 +870,7 @@ namespace Itinero
                 if (paths == null)
                 {
                     // use non-contracted calculation.
-                    var algorithm = new Itinero.Algorithms.Default.ManyToMany<T>(_db, weightHandler, sources, targets, maxSearch);
+                    var algorithm = new Itinero.Algorithms.Default.ManyToMany<T>(_db, weightHandler, sources, targets, maxSearch, _closedRoads);
                     algorithm.Run();
                     if (!algorithm.HasSucceeded)
                     {
@@ -867,7 +1002,7 @@ namespace Itinero
                     }
                     else
                     {
-                        var algorithm = new Itinero.Algorithms.Default.ManyToMany<T>(_db, weightHandler, sources, targets, maxSearch);
+                        var algorithm = new Itinero.Algorithms.Default.ManyToMany<T>(_db, weightHandler, sources, targets, maxSearch, _closedRoads);
                         algorithm.Run();
                         if (!algorithm.HasSucceeded)
                         {

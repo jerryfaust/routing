@@ -39,12 +39,13 @@ namespace Itinero.Algorithms.Default.EdgeBased
         private readonly Func<uint, IEnumerable<uint[]>> _getRestriction;
         private readonly T _sourceMax;
         private readonly bool _backward;
+        private readonly List<uint> _closures;
 
         /// <summary>
         /// Creates a new one-to-all dykstra algorithm instance.
         /// </summary>
         public Dykstra(Graph graph, WeightHandler<T> weightHandler, Func<uint, IEnumerable<uint[]>> getRestriction,
-            IEnumerable<EdgePath<T>> sources, T sourceMax, bool backward)
+            IEnumerable<EdgePath<T>> sources, T sourceMax, List<uint> closures, bool backward)
         {
             _graph = graph;
             _sources = sources;
@@ -52,6 +53,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
             _sourceMax = sourceMax;
             _backward = backward;
             _getRestriction = getRestriction;
+            _closures = closures;
         }
 
         private Graph.EdgeEnumerator _edgeEnumerator;
@@ -222,6 +224,12 @@ namespace Itinero.Algorithms.Default.EdgeBased
                 var edge = _edgeEnumerator;
                 var directedEdgeId = _edgeEnumerator.IdDirected();
                 var neighbour = edge.To;
+
+                // is this edge closed?
+                if (_closures.Contains(edge.Id))
+                { // bypass
+                    continue;
+                }
 
                 if (directedEdgeId == -_current.Edge)
                 { // don't go back.
@@ -411,8 +419,8 @@ namespace Itinero.Algorithms.Default.EdgeBased
         /// Creates a new one-to-all dykstra algorithm instance.
         /// </summary>
         public Dykstra(Graph graph, Func<ushort, Factor> getFactor, Func<uint, IEnumerable<uint[]>> getRestriction,
-            IEnumerable<EdgePath<float>> sources, float sourceMax, bool backward)
-            : base(graph, new DefaultWeightHandler(getFactor), getRestriction, sources, sourceMax, backward)
+            IEnumerable<EdgePath<float>> sources, float sourceMax, List<uint> closures, bool backward)
+            : base(graph, new DefaultWeightHandler(getFactor), getRestriction, sources, sourceMax, closures, backward)
         {
 
         }
@@ -421,8 +429,8 @@ namespace Itinero.Algorithms.Default.EdgeBased
         /// Creates a new one-to-all dykstra algorithm instance.
         /// </summary>
         public Dykstra(Graph graph, DefaultWeightHandler weightHandler, Func<uint, IEnumerable<uint[]>> getRestriction,
-            IEnumerable<EdgePath<float>> sources, float sourceMax, bool backward)
-            : base(graph, weightHandler, getRestriction, sources, sourceMax, backward)
+            IEnumerable<EdgePath<float>> sources, float sourceMax, List<uint> closures, bool backward)
+            : base(graph, weightHandler, getRestriction, sources, sourceMax, closures, backward)
         {
 
         }

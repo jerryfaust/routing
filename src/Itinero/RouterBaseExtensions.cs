@@ -172,10 +172,18 @@ namespace Itinero
         /// </summary>
         public static Func<GeometricEdge, bool> GetIsAcceptable(this RouterBase router, params IProfileInstance[] profiles)
         {
+            // no profiles handed in, when we just want the nearest edge...
+            if (profiles == null)
+            {
+                return (edge) =>
+                { 
+                    return true;
+                };
+            }
+
             if (router.ProfileFactorAndSpeedCache != null && router.ProfileFactorAndSpeedCache.ContainsAll(profiles))
             { // use cached version and don't consult profiles anymore.
-                return router.ProfileFactorAndSpeedCache.GetIsAcceptable(router.VerifyAllStoppable,
-                    profiles);
+                return router.ProfileFactorAndSpeedCache.GetIsAcceptable(router.VerifyAllStoppable, router.Closures, profiles);
             }
             else
             { // use the regular function, and consult profiles continuously.
@@ -195,8 +203,7 @@ namespace Itinero
                     Itinero.Logging.Logger.Log("RouterBaseExtensions", TraceEventType.Information, "Profile(s) {0} not cached, building cache.",
                         profileNames.ToInvariantString());
                     router.ProfileFactorAndSpeedCache.CalculateFor(profileArray);
-                    return router.ProfileFactorAndSpeedCache.GetIsAcceptable(router.VerifyAllStoppable,
-                        profiles);
+                    return router.ProfileFactorAndSpeedCache.GetIsAcceptable(router.VerifyAllStoppable, router.Closures, profiles);
                 }
                 else
                 {
@@ -234,6 +241,32 @@ namespace Itinero
                     };
                 }
             }
+        }
+
+        /// <summary>
+        /// Find nearest network edge independent of Profile or Closures
+        /// </summary>
+        public static Result<uint> NearestEdge(this RouterBase router, float latitude, float longitude,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            return router.NearestEdge(latitude, longitude, searchDistanceInMeter);
+        }
+
+        /// <summary>
+        /// Close (or Open) road based on geographic location
+        /// </summary>
+        public static Result<RouterPoint> CloseRoad(this RouterBase router, float latitude, float longitude, bool doClose,
+            float searchDistanceInMeter = Constants.SearchDistanceInMeter)
+        {
+            return router.CloseRoad(latitude, longitude, doClose, searchDistanceInMeter);
+        }
+
+        /// <summary>
+        /// Close (or Open) road based on its internal Edge ID
+        /// </summary>
+        public static Result<bool> CloseRoad(this RouterBase router, uint edgeId, bool doClose)
+        {
+            return router.CloseRoad(edgeId, doClose);
         }
 
         /// <summary>

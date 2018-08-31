@@ -35,6 +35,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
         private readonly RouterPoint[] _targets;
         private readonly T _maxSearch;
         private readonly Func<uint, IEnumerable<uint[]>> _getRestrictions;
+        private readonly List<uint> _closures;
         
         /// <summary>
         /// Creates a new algorithm.
@@ -48,6 +49,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
             _targets = targets;
             _maxSearch = maxSearch;
             _getRestrictions = getRestrictions;
+            _closures = router.Closures;
         }
 
         private OneToMany<T>[] _sourceSearches;
@@ -61,7 +63,7 @@ namespace Itinero.Algorithms.Default.EdgeBased
             _sourceSearches = new OneToMany<T>[_sources.Length];
             for (var i = 0; i < _sources.Length; i++)
             {
-                _sourceSearches[i] = new OneToMany<T>(_routerDb, _weightHandler, _getRestrictions, _sources[i], _targets, _maxSearch);
+                _sourceSearches[i] = new OneToMany<T>(_routerDb, _weightHandler, _getRestrictions, _sources[i], _targets, _maxSearch, _closures);
                 _sourceSearches[i].Run();
             }
 

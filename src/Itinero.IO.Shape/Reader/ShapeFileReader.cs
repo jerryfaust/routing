@@ -111,6 +111,7 @@ namespace Itinero.IO.Shape.Reader
 
                     // get the geometry.
                     var lineString = reader.Geometry as LineString;
+                    if (lineString == null) continue;
 
                     // read nodes
                     long fromId = reader.GetInt64(header[_sourceVertexColumn]);
@@ -174,6 +175,7 @@ namespace Itinero.IO.Shape.Reader
 
                     // get the geometry.
                     var lineString = reader.Geometry as LineString;
+                    if (lineString == null) continue;
 
                     // read nodes
                     long vertex1Shape = reader.GetInt64(header[_sourceVertexColumn]);

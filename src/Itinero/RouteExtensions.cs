@@ -947,5 +947,98 @@ namespace Itinero
             var profile = Profiles.Profile.GetRegistered(route.Profile);
             return profile.InstructionGenerator.Generate(route, languageReference);
         }
+
+        /// <summary>
+        /// Returns concise instructions (attempting to remove redundancies) as a List of Strings
+        /// </summary>
+        /// <param name="route"></param>
+        /// <param name="conversionFromMeters">Conversion factor if wanting results is units other than meters</param>
+        /// <param name="displayUnits">If displaying units other than meters, provide string (e.g. "miles")</param>
+        /// <returns></returns>
+        public static IList<string> ConciseInstructions(this Route route, float conversionFromMeters = 1, string displayUnits = "meters")
+        {
+            IList<string> results = new List<string>();
+            bool firstTime = true;
+            Single dist = 0, time = 0, segment = 0, cumulant = 0;
+            bool continuing = false;
+            string lineItem = string.Empty;
+            string currentStreet = string.Empty, nextStreet = string.Empty;
+
+            // get full instructions
+            IList<Instruction> instructions = GenerateInstructions(route);
+            foreach(Instruction instruction in instructions)
+            {
+                if (firstTime)
+                {
+                    // initial instruction differs from the rest
+                    lineItem = instruction.Text;
+                    results.Add(lineItem);
+                    firstTime = false;
+                }
+                else
+                {
+                    // get next segment
+                    DistanceAndTimeAt(route, instruction.Shape, out dist, out time);
+
+                    // are we continuing from a previous instruction ?
+                    if (continuing)
+                    {
+                        // length of previous and current segment
+                        segment = segment + dist - cumulant;
+                    }
+                    else
+                    {
+                        // length of just this segment
+                        segment = dist - cumulant;
+                    }
+                    // cumulative length
+                    cumulant = dist;
+
+                    // we want to look ahead in case we're simply 'continuing' straight on the same street
+                    nextStreet = instruction.Text;
+                    if (nextStreet.StartsWith("Arrive"))
+                    {
+                        // we're done
+                        continuing = false;
+                    }
+                    else
+                    {
+                        // else keep checking for continuation
+                        int idx = nextStreet.IndexOf("onto ");
+                        if (idx < 0)
+                        {
+                            // if not 'onto', try 'on'
+                            idx = nextStreet.IndexOf("on ");
+                            idx += 3;
+                        }
+                        else
+                        {
+                            idx += 5;
+                        }
+                        nextStreet = nextStreet.Substring(idx);
+                        // considering 'Continue' rather than 'Continue on', ignores 'slightly right' and 'slightly left' on same road
+                        continuing = (nextStreet == currentStreet && instruction.Text.Substring(0, 9) == "Continue "); // 11) == "Continue on");
+                        //continuing = (nextStreet == currentStreet && instruction.Text.Substring(0, 11) == "Continue on");
+                    }
+                    // not continuing ?
+                    if (!continuing)
+                    {
+                        lineItem = string.Format("Drive {0:f2} {1}.", (segment * conversionFromMeters), displayUnits);
+                        results.Add(lineItem);
+                        lineItem = instruction.Text;
+                        results.Add(lineItem);
+                    }
+
+                    // save current street for next iteration
+                    currentStreet = nextStreet;
+                }
+            }
+            // total distance
+            lineItem = string.Format("Total distance = {0:f2} {1}", (cumulant * conversionFromMeters), displayUnits);
+            results.Add(lineItem);
+
+            // return list
+            return results;
+        }
     }
 }

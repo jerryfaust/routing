@@ -75,7 +75,7 @@ namespace Itinero.Algorithms.Networks
                                 {
                                     return false;
                                 }
-                                else if (edgeData2.Distance == 2)
+                                else if (edge2Factor.Direction == 2)
                                 {
                                     return false;
                                 }

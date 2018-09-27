@@ -255,7 +255,7 @@ namespace Itinero
         /// <summary>
         /// Close (or Open) road based on geographic location
         /// </summary>
-        public static Result<RouterPoint> CloseRoad(this RouterBase router, float latitude, float longitude, bool doClose,
+        public static Result<bool> CloseRoad(this RouterBase router, float latitude, float longitude, bool doClose,
             float searchDistanceInMeter = Constants.SearchDistanceInMeter)
         {
             return router.CloseRoad(latitude, longitude, doClose, searchDistanceInMeter);
@@ -267,6 +267,11 @@ namespace Itinero
         public static Result<bool> CloseRoad(this RouterBase router, uint edgeId, bool doClose)
         {
             return router.CloseRoad(edgeId, doClose);
+        }
+
+        public static Result<bool> OpenAllClosedRoads(this RouterBase router)
+        {
+            return router.OpenAllClosedRoads();
         }
 
         /// <summary>

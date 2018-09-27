@@ -123,7 +123,7 @@ namespace Itinero
         /// <summary>
         /// Close (or Open) road based on geographic location
         /// </summary>
-        public sealed override Result<RouterPoint> CloseRoad(float latitude, float longitude, bool doClose, 
+        public sealed override Result<bool> CloseRoad(float latitude, float longitude, bool doClose, 
             float searchDistanceInMeter = Constants.SearchDistanceInMeter)
         {
             try
@@ -137,7 +137,7 @@ namespace Itinero
                 resolver.Run();
                 if (!resolver.HasSucceeded)
                 { // something went wrong.
-                    return new Result<RouterPoint>(resolver.ErrorMessage, (message) =>
+                    return new Result<bool>(resolver.ErrorMessage, (message) =>
                     {
                         return new Exceptions.ResolveFailedException(message);
                     });
@@ -146,29 +146,11 @@ namespace Itinero
                 // get the Edge from the result
                 uint edgeId = resolver.Result.EdgeId;
 
-                if (doClose)
-                {
-                    if (!_closedRoads.Contains(edgeId))
-                        _closedRoads.Add(edgeId);
-                }
-                else
-                {
-                    if (_closedRoads.Contains(edgeId))
-                        _closedRoads.Remove(edgeId);
-                }
-
-                //RoutingEdge edge = _db.Network.GetEdge(edgeId);
-                //// Open is profile 3, Closed is profile 2?
-                //Data.Network.Edges.EdgeData edgeData = edge.Data;
-                //edgeData.Profile = (ushort)(doClose ? 2 : 3);
-                ////edge.Data = edgeData;
-                //_db.Network.UpdateEdgeData(edgeId, edgeData);
-
-                return new Result<RouterPoint>(resolver.Result);
+                return CloseRoad(edgeId, doClose);
             }
             catch (Exception ex)
             {
-                return new Result<RouterPoint>(ex.Message, (m) => ex);
+                return new Result<bool>(ex.Message, (m) => ex);
             }
         }
 
@@ -186,8 +168,9 @@ namespace Itinero
                     if (!_closedRoads.Contains(edgeId))
                     {
                         _closedRoads.Add(edgeId);
-                        result = true;
                     }
+                    // return true even if road was already closed
+                    result = true;
                 }
                 else
                 {
@@ -195,9 +178,32 @@ namespace Itinero
                     {
                         result = _closedRoads.Remove(edgeId);
                     }
+                    else
+                    {
+                        // return true even if road was already open
+                        result = true;
+                    }
                 }
 
                 return new Result<bool>(result);
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool>(ex.Message, (m) => ex);
+            }
+        }
+
+        /// <summary>
+        /// Opens all closed roads by clearing the List of IDs
+        /// </summary>
+        /// <returns></returns>
+        public sealed override Result<bool> OpenAllClosedRoads()
+        {
+            try
+            {
+                _closedRoads.Clear();
+
+                return new Result<bool>(true);
             }
             catch (Exception ex)
             {

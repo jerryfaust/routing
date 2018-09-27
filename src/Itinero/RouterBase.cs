@@ -65,13 +65,19 @@ namespace Itinero
         /// <summary>
         /// Close (or Open) road based on geographic location
         /// </summary>
-        public abstract Result<RouterPoint> CloseRoad(float latitude, float longitude, bool doClose,
+        public abstract Result<bool> CloseRoad(float latitude, float longitude, bool doClose,
             float searchDistanceInMeter = Constants.SearchDistanceInMeter);
 
         /// <summary>
         /// Close (or Open) road based on its internal Edge ID
         /// </summary>
         public abstract Result<bool> CloseRoad(uint edgeId, bool doClose);
+
+        /// <summary>
+        /// Open all closed roads
+        /// </summary>
+        /// <returns></returns>
+        public abstract Result<bool> OpenAllClosedRoads();
 
         /// <summary>
         /// Searches for the closest point on the routing network that's routable for the given profiles.
